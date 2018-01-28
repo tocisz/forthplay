@@ -9,9 +9,18 @@ Follow [installation instructions from project Wiki](https://github.com/rogercla
 ### Flashing with serial connection
 
 First you need to flash forth. You can use USB-to-Serial dongle.
-Set BOOT0 jumper to 1.
 Download [stm32loader](https://github.com/jsnyder/stm32loader).
 Before use install: `sudo pip install pyserial`.
+
+Set BOOT0 jumper to 1.
+
+Connect:
+```
+STM32   PA9  --- RX   USB
+        PA10 --- TX
+```
+![STM32](1.jpg)
+![USB-UART](2.jpg)
 
 Get flash from [mecrisp-stellaris](https://github.com/jeelabs/mecrisp-stellaris).
 
