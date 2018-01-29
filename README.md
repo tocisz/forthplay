@@ -8,7 +8,7 @@ Follow [the installation instructions from the project wiki](https://github.com/
 
 ### Flashing with a serial connection
 
-First you need to flash Forth. You can use a USB-to-Serial dongle.
+First you need to flash forth. You can use a USB-UART dongle.
 Download [stm32loader](https://github.com/jsnyder/stm32loader).
 Before use, install: `sudo pip install pyserial`.
 
@@ -16,7 +16,7 @@ Set BOOT0 jumper to 1.
 
 Connect:
 ```
-STM32   PA9  --- RX   USB
+STM32   PA9  --- RX   UART-USB
         PA10 --- TX
 ```
 ![STM32](1.jpg)
@@ -49,7 +49,7 @@ See [here](https://github.com/jeelabs/embello/tree/master/explore/1608-forth)
 for a list of directories.
 
 Most important now is [suf](https://github.com/jeelabs/embello/tree/master/explore/1608-forth/suf)
-which will allow programming the microcontroller without USB-to-serial.
+which will allow programming the microcontroller without USB-UART connector.
 
 * run `folie`
 * `!cd ..../explore/1608-forth/suf`
