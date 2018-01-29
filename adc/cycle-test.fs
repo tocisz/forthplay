@@ -8,7 +8,7 @@
     cr
     dup execute
     -1 cnt +!
-  cnt @ 0 <> until
+  cnt @ 0 = until
   drop
 ;
 
