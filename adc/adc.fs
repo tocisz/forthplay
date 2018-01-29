@@ -1,7 +1,10 @@
 adc-init
 adc-calib
 
-: cycle ( arg fn -- )
+( Apostrophe in definition of this word reads address from word following )
+( in invocation. )
+: cycle: ( arg fn -- )
+  '
   begin
     cr
     200 ms
@@ -10,7 +13,8 @@ adc-calib
   drop
 ;
 
-: cycle-1arg ( arg fn -- )
+: cycle-1arg: ( arg fn -- )
+  '
   begin
     cr
     200 ms
@@ -19,20 +23,15 @@ adc-calib
   2drop
 ;
 
-: probe1 ( port -- )
+: probe ( port -- )
   adc u.
 ;
 
-: probe ( port -- )
-  ['] probe1 cycle-1arg
-;
-
-: probe-a1 ( -- )
+: probe-a ( -- )
   PA8 PA0 do
     i adc u. space
   loop
 ;
 
-: probe-a ( port -- )
-  ['] probe-a1 cycle
-;
+PA0 cycle-1arg: probe
+cycle: probe-a
