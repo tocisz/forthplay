@@ -3,8 +3,7 @@ adc-calib
 
 ( Apostrophe in definition of this word reads address from word following )
 ( in invocation. )
-: cycle: ( arg fn -- )
-  '
+: cycle ( arg fn -- )
   begin
     cr
     200 ms
@@ -13,8 +12,7 @@ adc-calib
   drop
 ;
 
-: cycle-1arg: ( arg fn -- )
-  '
+: cycle-1arg ( arg fn -- )
   begin
     cr
     200 ms
@@ -33,5 +31,5 @@ adc-calib
   loop
 ;
 
-PA0 cycle-1arg: probe
-cycle: probe-a
+PA0 ' probe cycle-1arg
+' probe-a cycle

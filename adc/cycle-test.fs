@@ -15,3 +15,6 @@
 : test ." t" ;
 
 cycle: test
+( but is it possible to use "cycle: test" in definition? )
+( see https://stackoverflow.com/questions/48510998/is-it-possible-to-consume-tick-in-forth-definition )
+( unfortunately it seems not to work with mecrisp )
