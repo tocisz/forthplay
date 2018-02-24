@@ -21,7 +21,7 @@ create motor-halfsteps \ half steps
 %1001 c,
 %1000 c,
 
-0 variable motor.mode \ 0 - full steps | 1 - half steps
+1 variable motor.mode \ 0 - full steps | 1 - half steps
 : motor-mask ( -- mask )
   motor.mode @
   if   motor-halfsteps-mask
@@ -36,18 +36,27 @@ create motor-halfsteps \ half steps
   then + c@
 ;
 
-4 variable motor.delay
+2 variable motor.delay
 0 variable motor.phase
 
 \ change working mode and correct phase number
 : motor-set-mode ( mode -- )
   dup ( mode mode )
   2* motor.mode @ or ( mode new_mode|old_mode-as-bits )
-  motor.phase @ swap ( mode phase new_mode|old_mode-as-bits )
+  dup ( mode new_mode|old_mode-as-bits x2 )
+
+  motor.phase @ swap ( mode new_mode|old_mode-as-bits phase new_mode|old_mode-as-bits )
   case
     %01 of 2/ endof \ half to full
     %10 of 2* endof \ full to half
-  endcase motor.phase ! ( mode )
+  endcase motor.phase ! ( mode new_mode|old_mode-as-bits )
+
+  motor.delay @ swap ( mode delay new_mode|old_mode-as-bits )
+  case
+    %01 of 2* endof \ half to full
+    %10 of 2/ endof \ full to half
+  endcase motor.delay ! ( mode )
+
   motor.mode !
 ;
 
