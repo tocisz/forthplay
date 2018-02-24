@@ -43,10 +43,11 @@ create motor-halfsteps \ half steps
 : motor-set-mode ( mode -- )
   dup ( mode mode )
   2* motor.mode @ or ( mode new_mode|old_mode-as-bits )
+  motor.phase @ swap ( mode phase new_mode|old_mode-as-bits )
   case
-    %01 of motor.phase @ 2/ motor.phase ! endof \ half to full
-    %10 of motor.phase @ 2* motor.phase ! endof \ full to half
-  endcase
+    %01 of 2/ endof \ half to full
+    %10 of 2* endof \ full to half
+  endcase motor.phase ! ( mode )
   motor.mode !
 ;
 
