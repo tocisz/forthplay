@@ -31,9 +31,9 @@ create motor-halfsteps \ half steps
 
 : motor-step-bits ( n -- bits )
   motor.mode @
-  if   motor-halfsteps + c@
-  else motor-fullsteps + c@
-  then
+  if   motor-halfsteps
+  else motor-fullsteps
+  then + c@
 ;
 
 4 variable motor.delay
