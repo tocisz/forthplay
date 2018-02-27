@@ -36,7 +36,7 @@ create motor.halfsteps \ half steps
   then + c@
 ;
 
-2 variable motor.delay
+2000 variable motor.delay
 0 variable motor.phase
 
 \ change working mode and correct phase number
@@ -107,9 +107,82 @@ create motor.halfsteps \ half steps
   0 do
     dup motor:step
     \ motor:print
-    motor.delay @ ms
+    motor.delay @ us
   loop ( sign[n] )
   drop
+  motor:off
+;
+
+25 constant motor.move-profile-size
+1000 constant motor.min-delay
+10000 constant motor.max-delay
+
+create motor.move-profile motor.move-profile-size 1+ cells allot
+: init-profile ( ratio1 ratio2 min-delay max-delay -- )
+  motor.move-profile cell+
+  dup motor.move-profile-size cells +
+  swap do
+    dup i !
+    2over */
+    2dup > if
+      i motor.move-profile - 2 arshift motor.move-profile !
+      leave
+    then
+  1 cells +loop
+  2drop 2drop
+;
+9 10 motor.min-delay motor.max-delay init-profile
+
+\ : print-profile ( -- )
+\   motor.move-profile cell+
+\   dup motor.move-profile @ cells +
+\   swap do
+\     i @ .
+\   1 cells +loop
+\ ;
+
+: motor:moves ( n -- )
+  dup 0< if -1 else 1 then >r ( n R: sign[n] )
+  abs ( |n| )
+
+  dup motor.move-profile @ 2* > \ is it twice bigger ?
+  if
+    motor.move-profile @ ( |n| 10 )
+    swap motor.move-profile @ 2* - ( 10 |n|-20  )
+    over ( 10 |n|-20 10  )
+  else
+    dup 2/ ( |n| |n|/2  )
+    swap 1 and ( |n|/2 |n|%2 )
+    over ( |n|/2 |n|%2 |n|/2 )
+  then
+  r> ( min[10, n/2] |n|-2*min[10, n/2] min[10, n/2] sign[n] )
+
+  \ speeding up
+  swap ( min[10, n/2] |n|-2*min[10, n/2] sign[n] min[10, n/2] )
+  2 lshift
+  motor.move-profile cell+ dup rot + \ base addr motor.move-profile +1 cell
+  swap do
+    dup motor:step
+    i @ us
+  1 cells +loop ( sign[n] )
+
+  \ constant speed
+  swap ( min[10, n/2] sign[n] |n|-2*min[10, n/2] )
+  0 ?do
+    dup motor:step
+    motor.min-delay us
+  loop ( sign[n] )
+
+  \ slowing down
+  swap ( sign[n] min[10, n/2] )
+  1- 2 lshift
+  motor.move-profile cell+ dup rot + \ base addr motor.move-profile +1 cell
+  do
+    dup motor:step
+    i @ us
+  -1 cells +loop ( sign[n] )
+  drop
+
   motor:off
 ;
 
