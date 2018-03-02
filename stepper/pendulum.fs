@@ -136,7 +136,7 @@ create motor.halfsteps \ half steps
 \ calculate sqrt for s31,32 < 1
 : 0sqrt ( d -- sqrt[d] )
   drop \ should be 0 anyway
-  sqrt $10000 * \ sqrt and correct point
+  sqrt 16 lshift \ sqrt and correct point
   0 \ add integer part back
   1-foldable
 ;
@@ -166,38 +166,37 @@ create motor.halfsteps \ half steps
 256 constant motor.move-profile-size \ 256 values plus counter
 800 constant motor.min-delay
 
-create motor.move-profile motor.move-profile-size 1+ cells allot
+create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
 : init-pendulum-profile ( -- )
-  motor.move-profile-size motor.move-profile ! \ size
+  motor.move-profile-size motor.move-profile h! \ size
   0 \ counter
-  motor.move-profile cell+
-  dup motor.move-profile-size 1- cells +
+  motor.move-profile 2+
+  dup motor.move-profile-size 1- 2* +
   do
-    dup motor.min-delay swap pendulum i !
+    dup motor.min-delay swap pendulum i h!
     1+
-  -1 cells +loop
+  -2 +loop
   drop
 ;
 init-pendulum-profile
 
 : print-profile ( -- )
-  motor.move-profile @ .
-  motor.move-profile cell+
-  dup motor.move-profile @ cells +
+  motor.move-profile h@ .
+  motor.move-profile 2+
+  dup motor.move-profile h@ 2* +
   swap do
-    i @ .
-  1 cells +loop
+    i h@ .
+  2 +loop
 ;
-
 
 : motor:moves ( n -- )
   dup 0< if -1 else 1 then >r ( n R: sign[n] )
   abs ( |n| )
 
-  dup motor.move-profile @ 2* > \ is it twice bigger ?
+  dup motor.move-profile h@ 2* > \ is it twice bigger ?
   if
-    motor.move-profile @ ( |n| 10 )
-    swap motor.move-profile @ 2* - ( 10 |n|-20  )
+    motor.move-profile h@ ( |n| 10 )
+    swap motor.move-profile h@ 2* - ( 10 |n|-20  )
     over ( 10 |n|-20 10  )
   else
     dup 2/ ( |n| |n|/2  )
@@ -208,12 +207,12 @@ init-pendulum-profile
 
   \ speeding up
   swap ( min[10, n/2] |n|-2*min[10, n/2] sign[n] min[10, n/2] )
-  2 lshift
-  motor.move-profile cell+ dup rot + \ base addr motor.move-profile +1 cell
+  2*
+  motor.move-profile 2+ dup rot + \ base addr motor.move-profile +1 cell
   swap do
     dup motor:step
-    i @ us
-  1 cells +loop ( sign[n] )
+    i h@ us
+  2 +loop ( sign[n] )
 
   \ constant speed
   swap ( min[10, n/2] sign[n] |n|-2*min[10, n/2] )
@@ -224,12 +223,12 @@ init-pendulum-profile
 
   \ slowing down
   swap ( sign[n] min[10, n/2] )
-  1- 2 lshift
-  motor.move-profile cell+ dup rot + \ base addr motor.move-profile +1 cell
+  1- 2*
+  motor.move-profile 2+ dup rot + \ base addr motor.move-profile +1 cell
   do
     dup motor:step
-    i @ us
-  -1 cells +loop ( sign[n] )
+    i h@ us
+  -2 +loop ( sign[n] )
   drop
 
   motor:off
