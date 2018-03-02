@@ -114,41 +114,42 @@ create motor.halfsteps \ half steps
 ;
 
 25 constant motor.move-profile-size
-1000 constant motor.min-delay
+800 constant motor.min-delay
 10000 constant motor.max-delay
 
-create motor.move-profile motor.move-profile-size 1+ cells allot
+create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
 : init-profile ( ratio1 ratio2 min-delay max-delay -- )
-  motor.move-profile cell+
-  dup motor.move-profile-size cells +
+  motor.move-profile 2+
+  dup motor.move-profile-size 2* +
   swap do
-    dup i !
+    dup i h!
     2over */
     2dup > if
-      i motor.move-profile - 2 arshift motor.move-profile !
+      i motor.move-profile - 2/ motor.move-profile h!
       leave
     then
-  1 cells +loop
+  2 +loop
   2drop 2drop
 ;
 9 10 motor.min-delay motor.max-delay init-profile
 
-\ : print-profile ( -- )
-\   motor.move-profile cell+
-\   dup motor.move-profile @ cells +
-\   swap do
-\     i @ .
-\   1 cells +loop
-\ ;
+: print-profile ( -- )
+  motor.move-profile h@ .
+  motor.move-profile 2+
+  dup motor.move-profile h@ 2* +
+  swap do
+    i h@ .
+  2 +loop
+;
 
 : motor:moves ( n -- )
   dup 0< if -1 else 1 then >r ( n R: sign[n] )
   abs ( |n| )
 
-  dup motor.move-profile @ 2* > \ is it twice bigger ?
+  dup motor.move-profile h@ 2* > \ is it twice bigger ?
   if
-    motor.move-profile @ ( |n| 10 )
-    swap motor.move-profile @ 2* - ( 10 |n|-20  )
+    motor.move-profile h@ ( |n| 10 )
+    swap motor.move-profile h@ 2* - ( 10 |n|-20  )
     over ( 10 |n|-20 10  )
   else
     dup 2/ ( |n| |n|/2  )
@@ -159,12 +160,12 @@ create motor.move-profile motor.move-profile-size 1+ cells allot
 
   \ speeding up
   swap ( min[10, n/2] |n|-2*min[10, n/2] sign[n] min[10, n/2] )
-  2 lshift
-  motor.move-profile cell+ dup rot + \ base addr motor.move-profile +1 cell
+  2*
+  motor.move-profile 2+ dup rot + \ base addr motor.move-profile +1 cell
   swap do
     dup motor:step
-    i @ us
-  1 cells +loop ( sign[n] )
+    i h@ us
+  2 +loop ( sign[n] )
 
   \ constant speed
   swap ( min[10, n/2] sign[n] |n|-2*min[10, n/2] )
@@ -175,12 +176,12 @@ create motor.move-profile motor.move-profile-size 1+ cells allot
 
   \ slowing down
   swap ( sign[n] min[10, n/2] )
-  1- 2 lshift
-  motor.move-profile cell+ dup rot + \ base addr motor.move-profile +1 cell
+  1- 2*
+  motor.move-profile 2+ dup rot + \ base addr motor.move-profile +1 cell
   do
     dup motor:step
-    i @ us
-  -1 cells +loop ( sign[n] )
+    i h@ us
+  -2 +loop ( sign[n] )
   drop
 
   motor:off
