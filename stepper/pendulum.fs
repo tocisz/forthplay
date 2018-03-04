@@ -178,7 +178,7 @@ create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
   -2 +loop
   drop
 ;
-init-pendulum-profile
+init-pendulum-profile \ 11.8 ms
 
 : print-profile ( -- )
   motor.move-profile h@ .

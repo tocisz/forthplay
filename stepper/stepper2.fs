@@ -113,11 +113,12 @@ create motor.halfsteps \ half steps
   motor:off
 ;
 
-25 constant motor.move-profile-size
+150 constant motor.move-profile-size
 800 constant motor.min-delay
 10000 constant motor.max-delay
 
 create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
+
 : init-profile ( ratio1 ratio2 min-delay max-delay -- )
   motor.move-profile 2+
   dup motor.move-profile-size 2* +
@@ -131,7 +132,72 @@ create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
   2 +loop
   2drop 2drop
 ;
-9 10 motor.min-delay motor.max-delay init-profile
+\ 9 10 motor.min-delay motor.max-delay init-profile \ 0.4 ms
+
+: sqrt ( u -- u^1/2 )
+  [
+  $2040 h, \   movs r0, #0x40
+  $0600 h, \   lsls r0, #24
+  $2100 h, \   movs r1, #0
+  $000A h, \ 1:movs r2, r1
+  $4302 h, \   orrs r2, r0
+  $0849 h, \   lsrs r1, #1
+  $4296 h, \   cmp r6, r2
+  $D301 h, \   blo 2f
+  $1AB6 h, \   subs r6, r2
+  $4301 h, \   orrs r1, r0
+  $0880 h, \ 2:lsrs r0, #2
+  $D1F6 h, \   bne 1b
+  $000E h, \   movs r6, r1
+  ]
+  1-foldable
+;
+
+\ calculate sqrt for s31,32 < 1
+: 0sqrt ( d -- sqrt[d] )
+  drop \ should be 0 anyway
+  sqrt 16 lshift \ sqrt and correct point
+  0 \ add integer part back
+  1-foldable
+;
+
+: asfloat ( n - df )
+  0 swap
+  1-foldable
+;
+
+: asint ( df - n )
+  swap drop
+  1-foldable
+;
+
+: invsqrt ( a dn -- a*sqrt[1/dn] )
+  2dup 1,0 d= if 2drop
+  else
+    1,0 2swap f/ ( a 1/n )
+    0sqrt ( a [f]sqrt[1/n] )
+    rot asfloat ( [f]sqrt[1/n] [f]a )
+    f* asint
+  then
+;
+
+: init-profile2 ( af min-delay max-delay -- )
+  motor.move-profile-size 2+ 1 do ( af min-delay max-delay )
+    dup ( af min-delay max-delay max-delay )
+    4 pick 4 pick i asfloat f* ( af min-delay max-delay max-delay a*i )
+    invsqrt ( af min-delay max-delay delay[ai,max] )
+    dup motor.move-profile i 2* + h!
+    2 pick < ( af min-delay max-delay delay[ai,max]<min-delay )
+    i motor.move-profile-size > or \ leave if too big
+    if
+      i 1- motor.move-profile h!
+      leave
+    then
+  loop
+  2drop 2drop
+;
+
+1,5 motor.min-delay motor.max-delay init-profile2
 
 : print-profile ( -- )
   motor.move-profile h@ .
