@@ -171,12 +171,13 @@ create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
   1-foldable
 ;
 
-: invsqrt ( a dn -- a*sqrt[1/dn] )
+: invsqrt ( max fa i -- fa*sqrt[1/[fa*i]] )
+  asfloat f* ( max fa*i )
   2dup 1,0 d= if 2drop
   else
-    1,0 2swap f/ ( a 1/n )
-    0sqrt ( a [f]sqrt[1/n] )
-    rot asfloat ( [f]sqrt[1/n] [f]a )
+    1,0 2swap f/ ( max 1/[fa*i] )
+    0sqrt ( max [f]sqrt[1/[fa*i]] )
+    rot asfloat ( [f]sqrt[1/[fa*i]] [f]max )
     f* asint
   then
 ;
@@ -184,7 +185,7 @@ create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
 : init-profile2 ( af min-delay max-delay -- )
   motor.move-profile-size 2+ 1 do ( af min-delay max-delay )
     dup ( af min-delay max-delay max-delay )
-    4 pick 4 pick i asfloat f* ( af min-delay max-delay max-delay a*i )
+    4 pick 4 pick i ( af min-delay max-delay max-delay af i )
     invsqrt ( af min-delay max-delay delay[ai,max] )
     dup motor.move-profile i 2* + h!
     2 pick < ( af min-delay max-delay delay[ai,max]<min-delay )
@@ -197,7 +198,7 @@ create motor.move-profile motor.move-profile-size 1+ 2* allot \ 16-bit values
   2drop 2drop
 ;
 
-1,5 motor.min-delay motor.max-delay init-profile2
+1,5 motor.min-delay motor.max-delay init-profile2 \ 3 ms
 
 : print-profile ( -- )
   motor.move-profile h@ .
