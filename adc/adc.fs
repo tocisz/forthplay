@@ -1,12 +1,10 @@
 adc-init
 adc-calib
 
-( Apostrophe in definition of this word reads address from word following )
-( in invocation. )
-: cycle ( arg fn -- )
+: cycle ( fn -- )
   begin
     cr
-    200 ms
+    20 ms
     dup execute
   key? until
   drop
@@ -15,7 +13,7 @@ adc-calib
 : cycle-1arg ( arg fn -- )
   begin
     cr
-    200 ms
+    50 ms
     2dup execute
   key? until
   2drop
@@ -31,5 +29,18 @@ adc-calib
   loop
 ;
 
-PA0 ' probe cycle-1arg
-' probe-a cycle
+: probe-ad ( -- )
+  PA0 adc PA1 adc - .
+  PA2 adc PA3 adc - .
+  PA4 adc PA5 adc - .
+;
+
+: probe-d
+  PA0 adc PA1 adc - 1000 + 20 / 0 max
+  0 ?do
+    ." #"
+  loop
+;
+
+\ PA0 ' probe cycle-1arg
+' probe-ad cycle
